@@ -42,9 +42,12 @@
             </div>
 
             <div class="form-group">
-                <label class="form-label">Department</label>
-                <input type="text" name="department" class="form-control" 
-                       placeholder="Enter department" maxlength="100" value="{{ old('department') }}">
+                <label class="form-label">Department *</label>
+                <select name="department" class="form-control" required>
+                    <option value="">Select Department</option>
+                    <option value="Engineering" {{ old('department') == 'Engineering' ? 'selected' : '' }}>Engineering</option>
+                    <option value="Information Technology" {{ old('department') == 'Information Technology' ? 'selected' : '' }}>Information Technology</option>
+                </select>
             </div>
 
             <div class="form-group">

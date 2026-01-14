@@ -31,9 +31,19 @@
             
             <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
                 <div class="form-group">
-                    <label class="form-label">Document Title</label>
+                    <label class="form-label">Document Title *</label>
                     <input type="text" name="document_title" class="form-control" 
                            placeholder="Enter document title" required maxlength="150">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Category</label>
+                    <select name="category_id" class="form-control">
+                        <option value="">Select Category</option>
+                        @foreach(\App\Models\DocumentCategory::all() as $cat)
+                            <option value="{{ $cat->category_id }}">{{ $cat->category_name }}</option>
+                        @endforeach
+                    </select>
                 </div>
 
                 <div class="form-group">
@@ -41,16 +51,21 @@
                     <input type="text" name="document_type" class="form-control" 
                            placeholder="e.g., Report, Policy, etc." maxlength="50">
                 </div>
+
+                <div class="form-group">
+                    <label class="form-label">Tags (comma-separated)</label>
+                    <input type="text" name="tags" class="form-control" placeholder="e.g. urgent, confidential">
+                </div>
             </div>
 
             <div class="form-group">
-                <label class="form-label">Select File</label>
-                <input type="file" name="document" class="form-control" required>
-                <small style="color: var(--text-light);">Max file size: 10MB</small>
+                <label class="form-label">Select Files * (Multiple supported)</label>
+                <input type="file" name="documents[]" class="form-control" multiple required>
+                <small style="color: var(--text-light);">Max file size: 10MB each. Select multiple files to upload at once.</small>
             </div>
 
             <button type="submit" class="btn btn-primary">
-                <i class="fas fa-upload"></i> Upload Document
+                <i class="fas fa-upload"></i> Upload Documents
             </button>
         </form>
     </div>

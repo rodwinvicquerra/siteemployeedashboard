@@ -112,6 +112,69 @@ class FacultyController extends Controller
         return view('faculty.documents', compact('documents'));
     }
 
+    public function uploadDocument(Request $request)
+    {
+        $validated = $request->validate([
+            'document_title' => 'required|string|max:150',
+            'documents' => 'required|array',
+            'documents.*' => 'file|max:10240',
+            'document_type' => 'nullable|string|max:50',
+            'category_id' => 'nullable|exists:document_categories,category_id',
+            'tags' => 'nullable|string',
+        ]);
+
+        $uploadedCount = 0;
+        foreach ($request->file('documents') as $index => $file) {
+            $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/documents'), $filename);
+
+            Document::create([
+                'uploaded_by' => auth()->id(),
+                'document_title' => $validated['document_title'] . ($uploadedCount > 0 ? ' (' . ($uploadedCount + 1) . ')' : ''),
+                'file_path' => 'uploads/documents/' . $filename,
+                'document_type' => $validated['document_type'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
+                'tags' => $validated['tags'] ?? null,
+            ]);
+            $uploadedCount++;
+        }
+
+        return redirect()->back()->with('success', "$uploadedCount document(s) uploaded successfully");
+    }
+
+    public function viewDocument($id)
+    {
+        $document = Document::findOrFail($id);
+        $filePath = public_path($document->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        
+        // For Office documents (Word, Excel, PowerPoint), use Google Docs Viewer
+        if (in_array($extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
+            $fileUrl = url($document->file_path);
+            return redirect("https://docs.google.com/viewer?url=" . urlencode($fileUrl) . "&embedded=true");
+        }
+
+        // For PDFs and images, display directly
+        return response()->file($filePath);
+    }
+
+    public function downloadDocument($id)
+    {
+        $document = Document::findOrFail($id);
+        $filePath = public_path($document->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        return response()->download($filePath, basename($document->file_path));
+    }
+
     public function profile()
     {
         $employee = auth()->user()->employee;

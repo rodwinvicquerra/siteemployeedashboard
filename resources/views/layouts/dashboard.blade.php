@@ -780,6 +780,17 @@
         </div>
     </div>
 
+    <!-- Document Preview Modal -->
+    <div class="search-modal" id="documentPreviewModal" style="align-items: center;">
+        <div class="search-modal-content" style="max-width: 90%; max-height: 90vh; height: 90vh;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding: 20px; border-bottom: 2px solid var(--border-color); background: var(--white);">
+                <h3 id="previewTitle" style="margin: 0; color: var(--text-dark);">Document Preview</h3>
+                <button onclick="closePreview()" style="background: none; border: none; font-size: 28px; cursor: pointer; color: var(--text-dark); width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center;">×</button>
+            </div>
+            <iframe id="previewFrame" style="width: 100%; height: calc(100% - 80px); border: none; background: white;"></iframe>
+        </div>
+    </div>
+
     <script src="{{ asset('js/app.js') }}"></script>
     <script>
         // Dark Mode Toggle
@@ -926,6 +937,92 @@
             }
         });
     </script>
+
+    <!-- Toast Container -->
+    <div id="toastContainer" style="position: fixed; top: 80px; right: 20px; z-index: 10000;"></div>
+
+    <script>
+        // Toast Notification System
+        function showToast(message, type = 'success') {
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.style.cssText = `
+                background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                color: white;
+                padding: 16px 24px;
+                border-radius: 8px;
+                margin-bottom: 10px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                min-width: 300px;
+                animation: slideIn 0.3s ease;
+            `;
+            
+            const icon = type === 'success' ? '✓' : type === 'error' ? '✕' : 'ℹ';
+            toast.innerHTML = `
+                <span style="font-size: 20px; font-weight: bold;">${icon}</span>
+                <span>${message}</span>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => toast.remove(), 300);
+            }, 4000);
+        }
+
+        // Replace old alerts with toasts
+        @if(session('success'))
+            showToast('{{ session("success") }}', 'success');
+        @endif
+
+        @if(session('error'))
+            showToast('{{ session("error") }}', 'error');
+        @endif
+
+        @if($errors->any())
+            showToast('{{ $errors->first() }}', 'error');
+        @endif
+
+        // Add CSS animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes slideIn {
+                from { transform: translateX(400px); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+            }
+            @keyframes slideOut {
+                from { transform: translateX(0); opacity: 1; }
+                to { transform: translateX(400px); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+
+    <script>
+        // Document Preview Modal Functions
+        function openPreview(url, title) {
+            document.getElementById('previewTitle').textContent = title;
+            document.getElementById('previewFrame').src = url;
+            document.getElementById('documentPreviewModal').classList.add('active');
+        }
+
+        function closePreview() {
+            document.getElementById('documentPreviewModal').classList.remove('active');
+            document.getElementById('previewFrame').src = '';
+        }
+
+        // Close preview on ESC
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && document.getElementById('documentPreviewModal').classList.contains('active')) {
+                closePreview();
+            }
+        });
+    </script>
+
     @stack('scripts')
 </body>
 </html>

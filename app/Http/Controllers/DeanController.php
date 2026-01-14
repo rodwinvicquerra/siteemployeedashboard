@@ -132,6 +132,15 @@ class DeanController extends Controller
             'byType' => $documents->groupBy('document_type')->map->count(),
         ];
 
-        return view('employees.profile', compact('employee', 'performanceReports', 'tasks', 'taskStats', 'documents', 'documentStats'));
+        $reports = \App\Models\Report::where('submitted_by', $employee->user_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $reportStats = [
+            'total' => $reports->count(),
+            'byCategory' => $reports->groupBy('report_category')->map->count(),
+        ];
+
+        return view('employees.profile', compact('employee', 'performanceReports', 'tasks', 'taskStats', 'documents', 'documentStats', 'reports', 'reportStats'));
     }
 }

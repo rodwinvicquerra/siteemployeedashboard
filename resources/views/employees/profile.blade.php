@@ -212,6 +212,66 @@
         @endif
     </div>
 
+    <!-- Submitted Reports -->
+    <div class="content-card">
+        <div class="card-header">
+            <h3 class="card-title">Submitted Reports</h3>
+            <span class="badge badge-info">{{ $reportStats['total'] ?? 0 }} Reports</span>
+        </div>
+        
+        @if(isset($reports) && $reports->count() > 0)
+            <!-- Report Stats by Category -->
+            <div style="display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 20px; padding: 10px; background: var(--hover-bg); border-radius: 8px;">
+                @foreach($reportStats['byCategory'] as $category => $count)
+                    <div style="padding: 8px 15px; background: var(--primary); color: white; border-radius: 20px; font-size: 14px;">
+                        <i class="fas fa-file-pdf"></i> {{ $category ?? 'Other' }}: <strong>{{ $count }}</strong>
+                    </div>
+                @endforeach
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Report Title</th>
+                        <th>Category</th>
+                        <th>File Name</th>
+                        <th>Submission Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach($reports as $report)
+                    <tr>
+                        <td><strong>{{ $report->report_title }}</strong></td>
+                        <td>
+                            <span class="badge badge-warning">
+                                {{ $report->report_category ?? 'N/A' }}
+                            </span>
+                        </td>
+                        <td style="font-family: monospace; font-size: 12px;">
+                            {{ basename($report->file_path) }}
+                        </td>
+                        <td>{{ $report->created_at->format('M d, Y h:i A') }}</td>
+                        <td>
+                            <a href="{{ asset($report->file_path) }}" target="_blank" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px; margin-right: 5px;">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                            <a href="{{ asset($report->file_path) }}" download class="btn btn-success" style="padding: 5px 10px; font-size: 12px;">
+                                <i class="fas fa-download"></i> Download
+                            </a>
+                        </td>
+                    </tr>
+                    @endforeach
+                </tbody>
+            </table>
+        @else
+            <div style="text-align: center; padding: 40px; color: var(--text-light);">
+                <i class="fas fa-file-pdf" style="font-size: 48px; margin-bottom: 15px; opacity: 0.5;"></i>
+                <p>No reports submitted yet</p>
+            </div>
+        @endif
+    </div>
+
     <!-- Task History -->
     <div class="content-card">
         <div class="card-header">

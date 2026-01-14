@@ -63,5 +63,8 @@ Route::middleware(['auth', 'role:Faculty Employee'])->prefix('faculty')->name('f
     Route::get('/notifications', [FacultyController::class, 'notifications'])->name('notifications');
     Route::post('/notifications/{id}/read', [FacultyController::class, 'markNotificationRead'])->name('mark-notification-read');
     Route::get('/documents', [FacultyController::class, 'documents'])->name('documents');
+    Route::post('/documents', [FacultyController::class, 'uploadDocument'])->name('upload-document');
+    Route::get('/documents/{id}/view', [FacultyController::class, 'viewDocument'])->name('view-document');
+    Route::get('/documents/{id}/download', [FacultyController::class, 'downloadDocument'])->name('download-document');
     Route::get('/profile', [FacultyController::class, 'profile'])->name('profile');
 });

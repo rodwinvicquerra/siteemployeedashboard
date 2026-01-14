@@ -131,13 +131,14 @@ class CoordinatorController extends Controller
             'password' => 'required|string|min:8',
             'full_name' => 'required|string|max:100',
             'employee_no' => 'nullable|string|unique:employees,employee_no|max:30',
-            'department' => 'nullable|string|max:100',
+            'department' => 'required|in:Engineering,Information Technology',
         ]);
 
         DB::beginTransaction();
         try {
             $user = User::create([
                 'role_id' => 3,
+                'name' => $validated['full_name'],
                 'username' => $validated['username'],
                 'email' => $validated['email'],
                 'password' => Hash::make($validated['password']),
@@ -163,7 +164,8 @@ class CoordinatorController extends Controller
                 ->with('success', 'Faculty account created successfully');
         } catch (\Exception $e) {
             DB::rollBack();
-            return back()->withErrors(['error' => 'Failed to create faculty account']);
+            return back()->withErrors(['error' => 'Failed to create faculty account: ' . $e->getMessage()])
+                ->withInput();
         }
     }
 
@@ -179,22 +181,30 @@ class CoordinatorController extends Controller
     {
         $validated = $request->validate([
             'document_title' => 'required|string|max:150',
-            'document' => 'required|file|max:10240',
+            'documents' => 'required|array',
+            'documents.*' => 'file|max:10240',
             'document_type' => 'nullable|string|max:50',
+            'category_id' => 'nullable|exists:document_categories,category_id',
+            'tags' => 'nullable|string',
         ]);
 
-        $file = $request->file('document');
-        $filename = time() . '_' . $file->getClientOriginalName();
-        $file->move(public_path('uploads/documents'), $filename);
+        $uploadedCount = 0;
+        foreach ($request->file('documents') as $index => $file) {
+            $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
+            $file->move(public_path('uploads/documents'), $filename);
 
-        Document::create([
-            'uploaded_by' => auth()->id(),
-            'document_title' => $validated['document_title'],
-            'file_path' => 'uploads/documents/' . $filename,
-            'document_type' => $validated['document_type'],
-        ]);
+            Document::create([
+                'uploaded_by' => auth()->id(),
+                'document_title' => $validated['document_title'] . ($uploadedCount > 0 ? ' (' . ($uploadedCount + 1) . ')' : ''),
+                'file_path' => 'uploads/documents/' . $filename,
+                'document_type' => $validated['document_type'] ?? null,
+                'category_id' => $validated['category_id'] ?? null,
+                'tags' => $validated['tags'] ?? null,
+            ]);
+            $uploadedCount++;
+        }
 
-        return redirect()->back()->with('success', 'Document uploaded successfully');
+        return redirect()->back()->with('success', "$uploadedCount document(s) uploaded successfully");
     }
 
     public function viewEmployeeProfile($id)
@@ -230,6 +240,15 @@ class CoordinatorController extends Controller
             'byType' => $documents->groupBy('document_type')->map->count(),
         ];
 
-        return view('employees.profile', compact('employee', 'performanceReports', 'tasks', 'taskStats', 'documents', 'documentStats'));
+        $reports = \App\Models\Report::where('submitted_by', $employee->user_id)
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        $reportStats = [
+            'total' => $reports->count(),
+            'byCategory' => $reports->groupBy('report_category')->map->count(),
+        ];
+
+        return view('employees.profile', compact('employee', 'performanceReports', 'tasks', 'taskStats', 'documents', 'documentStats', 'reports', 'reportStats'));
     }
 }
