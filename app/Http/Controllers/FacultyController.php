@@ -45,6 +45,9 @@ class FacultyController extends Controller
             ->take(5)
             ->get();
 
+        // Faculty sees only their own activities and notifications
+        $recentActivities = \App\Models\DashboardLog::getFilteredLogs(auth()->user(), 10);
+
         return view('faculty.dashboard', compact(
             'totalTasks',
             'pendingTasks',
@@ -53,7 +56,8 @@ class FacultyController extends Controller
             'recentTasks',
             'unreadNotifications',
             'recentNotifications',
-            'performanceReports'
+            'performanceReports',
+            'recentActivities'
         ));
     }
 
@@ -82,6 +86,15 @@ class FacultyController extends Controller
             'message' => 'Task "' . $task->task_title . '" status updated to: ' . $validated['status'],
         ]);
 
+        // Log task status update
+        \App\Models\DashboardLog::create([
+            'user_id' => auth()->id(),
+            'target_user_id' => $task->assigned_by,
+            'activity' => 'Updated task status: "' . $task->task_title . '" to ' . $validated['status'],
+            'activity_type' => 'task_update',
+            'visibility' => 'own',
+        ]);
+
         return redirect()->back()->with('success', 'Task status updated successfully');
     }
 
@@ -106,9 +119,7 @@ class FacultyController extends Controller
 
     public function documents()
     {
-        $documents = Document::with('uploader')
-            ->latest()
-            ->paginate(15);
+        $documents = Document::getFilteredDocuments(auth()->user())->paginate(15);
         return view('faculty.documents', compact('documents'));
     }
 
@@ -156,6 +167,14 @@ class FacultyController extends Controller
             ]);
             $uploadedCount++;
         }
+
+        // Log document upload activity (visible to Faculty, Coordinator, Dean)
+        \App\Models\DashboardLog::create([
+            'user_id' => auth()->id(),
+            'activity' => 'Uploaded ' . $uploadedCount . ' document(s): ' . $validated['document_title'],
+            'activity_type' => 'document_upload',
+            'visibility' => 'own',
+        ]);
 
         return redirect()->back()->with('success', "$uploadedCount document(s) uploaded successfully");
     }

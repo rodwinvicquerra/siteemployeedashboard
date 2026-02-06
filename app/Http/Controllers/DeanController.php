@@ -20,10 +20,8 @@ class DeanController extends Controller
         $completedTasks = Task::where('status', 'Completed')->count();
         $pendingTasks = Task::where('status', 'Pending')->count();
         
-        $recentActivities = DashboardLog::with('user')
-            ->latest('log_date')
-            ->take(10)
-            ->get();
+        // Dean sees all activities using filtered logs
+        $recentActivities = DashboardLog::getFilteredLogs(auth()->user(), 10);
         
         $performanceData = PerformanceReport::select(
                 DB::raw('AVG(rating) as avg_rating'),
@@ -95,9 +93,7 @@ class DeanController extends Controller
 
     public function documents()
     {
-        $documents = Document::with('uploader')
-            ->latest()
-            ->paginate(15);
+        $documents = Document::getFilteredDocuments(auth()->user())->paginate(15);
         return view('dean.documents', compact('documents'));
     }
 

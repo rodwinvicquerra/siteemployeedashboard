@@ -21,13 +21,142 @@
 @endsection
 
 @section('content')
+    <style>
+        .modern-tabs-container {
+            margin-bottom: 1.5rem;
+        }
+        .modern-tabs-header {
+            display: flex;
+            gap: 0.5rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .modern-tab-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.25rem;
+            background: transparent;
+            border: none;
+            border-bottom: 3px solid transparent;
+            color: var(--text-light);
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .modern-tab-button:hover {
+            color: var(--primary-color);
+            background: var(--bg-light);
+        }
+        .modern-tab-button.active {
+            color: var(--primary-color);
+            border-bottom-color: var(--primary-color);
+        }
+        .modern-content-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+        }
+        .modern-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .modern-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+        }
+        .modern-alert {
+            background: rgba(76, 175, 80, 0.1);
+            border-left: 4px solid #4CAF50;
+            padding: 1rem;
+            margin-bottom: 1.25rem;
+            border-radius: 6px;
+        }
+        .modern-alert strong {
+            color: #2e7d32;
+        }
+        .modern-alert p {
+            margin: 0.5rem 0 0 0;
+            color: #2e7d32;
+        }
+        .modern-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .modern-table thead th {
+            background: transparent;
+            color: var(--text-light);
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 0.875rem;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        .modern-table tbody td {
+            padding: 1rem 0.875rem;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-dark);
+            font-size: 0.875rem;
+        }
+        .modern-table tbody tr {
+            transition: all 0.2s ease;
+        }
+        .modern-table tbody tr:hover {
+            background: var(--bg-light);
+        }
+        .modern-badge {
+            display: inline-block;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+        }
+        .modern-badge-success {
+            background: rgba(76, 175, 80, 0.1);
+            color: #2e7d32;
+        }
+        .modern-badge-danger {
+            background: rgba(244, 67, 54, 0.1);
+            color: #c62828;
+        }
+        .modern-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.2s ease;
+            background: var(--primary-color);
+            color: var(--white);
+        }
+        .modern-btn:hover {
+            background: #388e3c;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+    </style>
+
     <!-- Tab Navigation -->
-    <div class="tabs-container" style="margin-bottom: 30px;">
-        <div class="tabs-header" style="display: flex; border-bottom: 2px solid rgba(2,138,15,0.2); gap: 5px;">
-            <button class="tab-button active" onclick="switchTab('list')" id="listTab">
+    <div class="modern-tabs-container">
+        <div class="modern-tabs-header">
+            <button class="modern-tab-button active" onclick="switchTab('list')" id="listTab">
                 <i class="fas fa-users"></i> Faculty Directory
             </button>
-            <button class="tab-button" onclick="switchTab('create')" id="createTab">
+            <button class="modern-tab-button" onclick="switchTab('create')" id="createTab">
                 <i class="fas fa-user-plus"></i> Create New Faculty
             </button>
         </div>
@@ -35,19 +164,19 @@
 
     <!-- Tab Content: Faculty List -->
     <div class="tab-content active" id="listContent">
-        <div class="content-card">
-            <div class="card-header">
-                <h3 class="card-title">Faculty Directory</h3>
+        <div class="modern-content-card">
+            <div class="modern-card-header">
+                <h3 class="modern-card-title">Faculty Directory</h3>
             </div>
 
             @if(session('success'))
-                <div style="background: rgba(76, 175, 80, 0.1); border-left: 4px solid #4CAF50; padding: 15px; margin-bottom: 20px; border-radius: 4px;">
-                    <strong style="color: #4CAF50;"><i class="fas fa-check-circle"></i> Success!</strong>
-                    <p style="margin: 5px 0 0 0; color: #4CAF50;">{{ session('success') }}</p>
+                <div class="modern-alert">
+                    <strong><i class="fas fa-check-circle"></i> Success!</strong>
+                    <p>{{ session('success') }}</p>
                 </div>
             @endif
 
-            <table class="data-table">
+            <table class="modern-table">
             <thead>
                 <tr>
                     <th>Employee No.</th>
@@ -66,15 +195,15 @@
                     <td>{{ $faculty->email }}</td>
                     <td>{{ $faculty->employee->department ?? 'N/A' }}</td>
                     <td>
-                        <a href="{{ route('coordinator.faculty-profile', $faculty->employee->employee_id) }}" class="btn btn-primary" style="padding: 5px 15px; font-size: 12px;">
+                        <a href="{{ route('coordinator.faculty-profile', $faculty->employee->employee_id) }}" class="modern-btn">
                             <i class="fas fa-eye"></i> View Profile
                         </a>
                     </td>
                     <td>
                         @if($faculty->status === 'Active')
-                            <span class="badge badge-success">Active</span>
+                            <span class="modern-badge modern-badge-success">Active</span>
                         @else
-                            <span class="badge badge-danger">Inactive</span>
+                            <span class="modern-badge modern-badge-danger">Inactive</span>
                         @endif
                     </td>
                 </tr>

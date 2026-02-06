@@ -94,55 +94,57 @@
         }
 
         .sidebar-menu {
-            padding: 20px 0;
+            padding: 20px 12px;
         }
 
         .menu-item {
-            padding: 14px 25px;
+            padding: 12px 16px;
+            margin: 4px 0;
             display: flex;
             align-items: center;
             color: var(--text-dark);
             text-decoration: none;
-            transition: all 0.3s ease;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
-            overflow: hidden;
-        }
-
-        .menu-item:before {
-            content: '';
-            position: absolute;
-            left: 0;
-            top: 0;
-            height: 100%;
-            width: 4px;
-            background: var(--primary-color);
-            transform: translateX(-100%);
-            transition: transform 0.3s ease;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.9375rem;
+            letter-spacing: 0.01em;
         }
 
         .menu-item:hover {
-            background: rgba(2, 138, 15, 0.08);
-            padding-left: 30px;
-        }
-
-        .menu-item:hover:before {
-            transform: translateX(0);
+            background: rgba(2, 138, 15, 0.06);
+            transform: translateX(4px);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .menu-item.active {
-            background: var(--primary-light);
-            color: var(--primary-dark);
+            background: var(--primary-color);
+            color: white;
             font-weight: 600;
+            box-shadow: 0 4px 12px rgba(2, 138, 15, 0.25);
+            transform: translateX(0);
         }
 
-        .menu-item.active:before {
-            transform: translateX(0);
+        .menu-item.active:hover {
+            background: var(--primary-dark);
+            transform: translateX(2px);
         }
 
         .menu-item i {
             margin-right: 12px;
-            font-size: 18px;
+            font-size: 1.25rem;
             width: 24px;
+            text-align: center;
+            transition: transform 0.25s ease;
+        }
+
+        .menu-item:hover i {
+            transform: scale(1.1);
+        }
+
+        .menu-item.active i {
+            transform: scale(1.05);
         }
 
         /* Main Content */

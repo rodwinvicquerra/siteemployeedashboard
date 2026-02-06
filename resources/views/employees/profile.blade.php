@@ -56,9 +56,16 @@
     <div class="content-card">
         <div class="card-header">
             <h3 class="card-title">Basic Information</h3>
-            <span class="badge {{ $employee->user->status === 'Active' ? 'badge-success' : 'badge-danger' }}">
-                {{ $employee->user->status }}
-            </span>
+            <div style="display: flex; gap: 10px; align-items: center;">
+                @if(auth()->user()->role_id === 2)
+                    <a href="{{ route('coordinator.edit-faculty', $employee->employee_id) }}" class="btn btn-primary" style="padding: 8px 20px; font-size: 14px;">
+                        <i class="fas fa-edit"></i> Edit Information
+                    </a>
+                @endif
+                <span class="badge {{ $employee->user->status === 'Active' ? 'badge-success' : 'badge-danger' }}">
+                    {{ $employee->user->status }}
+                </span>
+            </div>
         </div>
         <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 25px; padding: 10px 0;">
             <div>

@@ -36,13 +36,17 @@ class CoordinatorController extends Controller
             ->take(10)
             ->get();
 
+        // Coordinator sees filtered activities (own + all faculty activities)
+        $recentActivities = DashboardLog::getFilteredLogs(auth()->user(), 10);
+
         return view('coordinator.dashboard', compact(
             'totalFaculty',
             'myTasks',
             'pendingTasks',
             'completedTasks',
             'recentTasks',
-            'facultyList'
+            'facultyList',
+            'recentActivities'
         ));
     }
 
@@ -88,7 +92,10 @@ class CoordinatorController extends Controller
 
         DashboardLog::create([
             'user_id' => auth()->id(),
+            'target_user_id' => $validated['assigned_to'],
             'activity' => 'Created task: ' . $validated['task_title'],
+            'activity_type' => 'task_created',
+            'visibility' => 'coordinator',
         ]);
 
         return redirect()->route('coordinator.tasks')
@@ -156,7 +163,10 @@ class CoordinatorController extends Controller
 
             DashboardLog::create([
                 'user_id' => auth()->id(),
+                'target_user_id' => $user->id,
                 'activity' => 'Created faculty account: ' . $validated['full_name'],
+                'activity_type' => 'account_created',
+                'visibility' => 'coordinator',
             ]);
 
             DB::commit();
@@ -171,9 +181,7 @@ class CoordinatorController extends Controller
 
     public function documents()
     {
-        $documents = Document::with('uploader')
-            ->latest()
-            ->paginate(15);
+        $documents = Document::getFilteredDocuments(auth()->user())->paginate(15);
         return view('coordinator.documents', compact('documents'));
     }
 
@@ -223,6 +231,113 @@ class CoordinatorController extends Controller
         }
 
         return redirect()->back()->with('success', "$uploadedCount document(s) uploaded successfully");
+    }
+
+    public function editFaculty($id)
+    {
+        $employee = Employee::with(['user.role'])
+            ->where('employee_id', $id)
+            ->firstOrFail();
+
+        // Only allow editing faculty employees
+        if ($employee->user->role_id !== 3) {
+            abort(403, 'Unauthorized access');
+        }
+
+        return view('coordinator.edit-faculty', compact('employee'));
+    }
+
+    public function updateFaculty(Request $request, $id)
+    {
+        $employee = Employee::with('user')
+            ->where('employee_id', $id)
+            ->firstOrFail();
+
+        // Only allow editing faculty employees
+        if ($employee->user->role_id !== 3) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validated = $request->validate([
+            'full_name' => 'required|string|max:100',
+            'employee_no' => 'nullable|string|max:30|unique:employees,employee_no,' . $employee->employee_id . ',employee_id',
+            'department' => 'required|in:Information Technology,Engineering',
+            'email' => 'required|email|max:100|unique:users,email,' . $employee->user_id . ',id',
+        ]);
+
+        DB::beginTransaction();
+        try {
+            // Update employee information
+            $employee->update([
+                'full_name' => $validated['full_name'],
+                'employee_no' => $validated['employee_no'],
+                'department' => $validated['department'],
+            ]);
+
+            // Update user information
+            $employee->user->update([
+                'name' => $validated['full_name'],
+                'email' => $validated['email'],
+            ]);
+
+            DashboardLog::create([
+                'user_id' => auth()->id(),
+                'target_user_id' => $employee->user_id,
+                'activity' => 'Updated faculty information: ' . $validated['full_name'],
+                'activity_type' => 'profile_update',
+                'visibility' => 'coordinator',
+            ]);
+
+            DB::commit();
+            return redirect()->route('coordinator.faculty-profile', $id)
+                ->with('success', 'Faculty information updated successfully');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->withErrors(['error' => 'Failed to update faculty information: ' . $e->getMessage()])
+                ->withInput();
+        }
+    }
+
+    public function resetFacultyPassword(Request $request, $id)
+    {
+        $employee = Employee::with('user')
+            ->where('employee_id', $id)
+            ->firstOrFail();
+
+        // Only allow resetting password for faculty employees
+        if ($employee->user->role_id !== 3) {
+            abort(403, 'Unauthorized access');
+        }
+
+        $validated = $request->validate([
+            'new_password' => 'required|string|min:8|confirmed',
+        ]);
+
+        try {
+            $employee->user->update([
+                'password' => Hash::make($validated['new_password']),
+            ]);
+
+            // Create notification for faculty
+            Notification::create([
+                'user_id' => $employee->user_id,
+                'message' => 'Your password has been reset by ' . auth()->user()->employee->full_name . ' (Program Coordinator). Please use your new password to login.',
+            ]);
+
+            // Log activity visible to Dean, Coordinator, and affected Faculty
+            DashboardLog::create([
+                'user_id' => auth()->id(),
+                'target_user_id' => $employee->user_id,
+                'activity' => 'Reset password for faculty: ' . $employee->full_name,
+                'activity_type' => 'password_reset',
+                'visibility' => 'coordinator',
+            ]);
+
+            return redirect()->route('coordinator.faculty-profile', $id)
+                ->with('success', 'Password reset successfully. A notification has been sent to the faculty member.');
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to reset password: ' . $e->getMessage()]);
+        }
     }
 
     public function viewEmployeeProfile($id)

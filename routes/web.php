@@ -51,6 +51,9 @@ Route::middleware(['auth', 'role:Program Coordinator'])->prefix('coordinator')->
     Route::get('/faculty/create', [CoordinatorController::class, 'createFaculty'])->name('create-faculty');
     Route::post('/faculty', [CoordinatorController::class, 'storeFaculty'])->name('store-faculty');
     Route::get('/faculty/{id}/profile', [CoordinatorController::class, 'viewEmployeeProfile'])->name('faculty-profile');
+    Route::get('/faculty/{id}/edit', [CoordinatorController::class, 'editFaculty'])->name('edit-faculty');
+    Route::patch('/faculty/{id}', [CoordinatorController::class, 'updateFaculty'])->name('update-faculty');
+    Route::post('/faculty/{id}/reset-password', [CoordinatorController::class, 'resetFacultyPassword'])->name('reset-faculty-password');
     
     // Documents
     Route::get('/documents', [CoordinatorController::class, 'documents'])->name('documents');

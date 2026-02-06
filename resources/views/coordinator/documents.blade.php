@@ -21,36 +21,115 @@
 @endsection
 
 @section('content')
-    <div class="content-card">
-        <div class="card-header">
-            <h3 class="card-title">Upload New Document</h3>
+    <style>
+        .modern-content-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid var(--border-color);
+        }
+        .modern-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 2px solid var(--border-color);
+        }
+        .modern-card-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin: 0;
+        }
+        .modern-form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.25rem;
+        }
+        .modern-form-group {
+            margin-bottom: 1.25rem;
+        }
+        .modern-form-label {
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 0.5rem;
+        }
+        .modern-form-control {
+            width: 100%;
+            padding: 0.75rem;
+            font-size: 0.875rem;
+            border: 2px solid var(--border-color);
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        .modern-form-control:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+        }
+        .modern-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--primary-color);
+            color: var(--white);
+            text-decoration: none;
+        }
+        .modern-btn:hover {
+            background: #388e3c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+        }
+        .modern-file-help {
+            display: block;
+            color: var(--text-light);
+            font-size: 0.75rem;
+            margin-top: 0.375rem;
+        }
+    </style>
+
+    <div class="modern-content-card">
+        <div class="modern-card-header">
+            <h3 class="modern-card-title">Upload New Document</h3>
         </div>
         
         <form action="{{ route('coordinator.upload-document') }}" method="POST" enctype="multipart/form-data" id="uploadFormCoord">
             @csrf
             
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 15px;">
-                <div class="form-group">
-                    <label class="form-label">Document Title *</label>
-                    <input type="text" name="document_title" class="form-control" 
+            <div class="modern-form-grid">
+                <div class="modern-form-group">
+                    <label class="modern-form-label">Document Title *</label>
+                    <input type="text" name="document_title" class="modern-form-control" 
                            placeholder="Enter document title" required maxlength="150">
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Document Type *</label>
-                    <select name="document_type" id="documentTypeCoord" class="form-control" required>
+                <div class="modern-form-group">
+                    <label class="modern-form-label">Document Type *</label>
+                    <select name="document_type" id="documentTypeCoord" class="modern-form-control" required>
                         <option value="">Select Document Type</option>
                         <option value="pdf">PDF Document</option>
                         <option value="image">Image File</option>
                     </select>
-                    <small style="color: var(--text-light); font-size: 12px; margin-top: 5px; display: block;">
+                    <small class="modern-file-help">
                         <i class="fas fa-info-circle"></i> Select file type first before uploading
                     </small>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Category</label>
-                    <select name="category_id" class="form-control">
+                <div class="modern-form-group">
+                    <label class="modern-form-label">Category</label>
+                    <select name="category_id" class="modern-form-control">
                         <option value="">Select Category</option>
                         @foreach(\App\Models\DocumentCategory::all() as $cat)
                             <option value="{{ $cat->category_id }}">{{ $cat->category_name }}</option>
@@ -58,21 +137,21 @@
                     </select>
                 </div>
 
-                <div class="form-group">
-                    <label class="form-label">Tags (comma-separated)</label>
-                    <input type="text" name="tags" class="form-control" placeholder="e.g. urgent, confidential">
+                <div class="modern-form-group">
+                    <label class="modern-form-label">Tags (comma-separated)</label>
+                    <input type="text" name="tags" class="modern-form-control" placeholder="e.g. urgent, confidential">
                 </div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label">Select Files * (Multiple supported)</label>
-                <input type="file" name="documents[]" id="fileInputCoord" class="form-control" multiple required disabled>
-                <small id="fileHelpCoord" style="color: var(--text-light); font-size: 12px; margin-top: 5px; display: block;">
+            <div class="modern-form-group">
+                <label class="modern-form-label">Select Files * (Multiple supported)</label>
+                <input type="file" name="documents[]" id="fileInputCoord" class="modern-form-control" multiple required disabled>
+                <small id="fileHelpCoord" class="modern-file-help">
                     <i class="fas fa-lock"></i> Please select a Document Type first to enable file upload
                 </small>
             </div>
 
-            <button type="submit" class="btn btn-primary">
+            <button type="submit" class="modern-btn">
                 <i class="fas fa-upload"></i> Upload Documents
             </button>
         </form>
