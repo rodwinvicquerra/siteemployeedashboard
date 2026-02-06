@@ -116,12 +116,30 @@ class FacultyController extends Controller
     {
         $validated = $request->validate([
             'document_title' => 'required|string|max:150',
+            'document_type' => 'required|in:pdf,image',
             'documents' => 'required|array',
-            'documents.*' => 'file|max:10240',
-            'document_type' => 'nullable|string|max:50',
+            'documents.*' => 'required|file|max:10240',
             'category_id' => 'nullable|exists:document_categories,category_id',
             'tags' => 'nullable|string',
         ]);
+
+        // Additional validation: Ensure file extensions match document_type
+        $documentType = $validated['document_type'];
+        foreach ($request->file('documents') as $file) {
+            $extension = strtolower($file->getClientOriginalExtension());
+            
+            if ($documentType === 'pdf' && $extension !== 'pdf') {
+                return redirect()->back()
+                    ->withErrors(['documents' => 'You selected "PDF Document" but uploaded a non-PDF file.'])
+                    ->withInput();
+            }
+            
+            if ($documentType === 'image' && !in_array($extension, ['jpg', 'jpeg', 'png'])) {
+                return redirect()->back()
+                    ->withErrors(['documents' => 'You selected "Image File" but uploaded an invalid image format. Only JPG, JPEG, PNG allowed.'])
+                    ->withInput();
+            }
+        }
 
         $uploadedCount = 0;
         foreach ($request->file('documents') as $index => $file) {
@@ -132,7 +150,7 @@ class FacultyController extends Controller
                 'uploaded_by' => auth()->id(),
                 'document_title' => $validated['document_title'] . ($uploadedCount > 0 ? ' (' . ($uploadedCount + 1) . ')' : ''),
                 'file_path' => 'uploads/documents/' . $filename,
-                'document_type' => $validated['document_type'] ?? null,
+                'document_type' => $validated['document_type'],
                 'category_id' => $validated['category_id'] ?? null,
                 'tags' => $validated['tags'] ?? null,
             ]);
@@ -152,15 +170,19 @@ class FacultyController extends Controller
         }
 
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
-        
-        // For Office documents (Word, Excel, PowerPoint), use Google Docs Viewer
-        if (in_array($extension, ['doc', 'docx', 'xls', 'xlsx', 'ppt', 'pptx'])) {
-            $fileUrl = url($document->file_path);
-            return redirect("https://docs.google.com/viewer?url=" . urlencode($fileUrl) . "&embedded=true");
-        }
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+        ];
 
-        // For PDFs and images, display directly
-        return response()->file($filePath);
+        $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+        ]);
     }
 
     public function downloadDocument($id)

@@ -32,6 +32,8 @@ Route::middleware(['auth', 'role:Dean'])->prefix('dean')->name('dean.')->group(f
     Route::get('/reports', [DeanController::class, 'reports'])->name('reports');
     Route::get('/analytics', [DeanController::class, 'analytics'])->name('analytics');
     Route::get('/documents', [DeanController::class, 'documents'])->name('documents');
+    Route::get('/documents/{id}/view', [DeanController::class, 'viewDocument'])->name('view-document');
+    Route::get('/documents/{id}/download', [DeanController::class, 'downloadDocument'])->name('download-document');
 });
 
 // Program Coordinator Routes
@@ -53,6 +55,8 @@ Route::middleware(['auth', 'role:Program Coordinator'])->prefix('coordinator')->
     // Documents
     Route::get('/documents', [CoordinatorController::class, 'documents'])->name('documents');
     Route::post('/documents', [CoordinatorController::class, 'uploadDocument'])->name('upload-document');
+    Route::get('/documents/{id}/view', [CoordinatorController::class, 'viewDocument'])->name('view-document');
+    Route::get('/documents/{id}/download', [CoordinatorController::class, 'downloadDocument'])->name('download-document');
 });
 
 // Faculty Employee Routes

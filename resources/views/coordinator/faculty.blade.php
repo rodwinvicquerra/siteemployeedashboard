@@ -54,7 +54,6 @@
                     <th>Full Name</th>
                     <th>Email</th>
                     <th>Department</th>
-                    <th>Hire Date</th>
                     <th>Action</th>
                     <th>Status</th>
                 </tr>
@@ -66,7 +65,6 @@
                     <td>{{ $faculty->employee->full_name ?? 'N/A' }}</td>
                     <td>{{ $faculty->email }}</td>
                     <td>{{ $faculty->employee->department ?? 'N/A' }}</td>
-                    <td>{{ $faculty->employee->hire_date ? $faculty->employee->hire_date->format('M d, Y') : 'N/A' }}</td>
                     <td>
                         <a href="{{ route('coordinator.faculty-profile', $faculty->employee->employee_id) }}" class="btn btn-primary" style="padding: 5px 15px; font-size: 12px;">
                             <i class="fas fa-eye"></i> View Profile
@@ -83,7 +81,7 @@
                 @empty
                 <tr>
                     <td colspan="7" style="text-align: center; color: var(--text-light);">
-                        No faculty members yet
+                        No facult6 members yet
                     </td>
                 </tr>
                 @endforelse

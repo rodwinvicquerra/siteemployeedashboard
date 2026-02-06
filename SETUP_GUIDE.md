@@ -118,7 +118,7 @@ Visit: `http://localhost:8000`
 - `POST /login` - Login submission
 - `POST /logout` - Logout
 
-### Dean Routes (Prefix: /dean)
+### p Routes (Prefix: /dean)
 - `/dashboard` - Main dashboard
 - `/employees` - Employee list
 - `/reports` - Performance reports

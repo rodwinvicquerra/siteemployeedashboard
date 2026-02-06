@@ -143,4 +143,41 @@ class DeanController extends Controller
 
         return view('employees.profile', compact('employee', 'performanceReports', 'tasks', 'taskStats', 'documents', 'documentStats', 'reports', 'reportStats'));
     }
+
+    public function viewDocument($id)
+    {
+        $document = Document::findOrFail($id);
+        $filePath = public_path($document->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+        $mimeTypes = [
+            'pdf' => 'application/pdf',
+            'png' => 'image/png',
+            'jpg' => 'image/jpeg',
+            'jpeg' => 'image/jpeg',
+        ];
+
+        $mimeType = $mimeTypes[$extension] ?? 'application/octet-stream';
+
+        return response()->file($filePath, [
+            'Content-Type' => $mimeType,
+            'Content-Disposition' => 'inline; filename="' . basename($filePath) . '"'
+        ]);
+    }
+
+    public function downloadDocument($id)
+    {
+        $document = Document::findOrFail($id);
+        $filePath = public_path($document->file_path);
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        return response()->download($filePath, basename($document->file_path));
+    }
 }

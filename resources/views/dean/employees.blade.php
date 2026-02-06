@@ -37,7 +37,6 @@
                     <th>Department</th>
                     <th>Position</th>
                     <th>Role</th>
-                    <th>Hire Date</th>
                     <th>Action</th>
                     <th>Status</th>
                 </tr>
@@ -54,7 +53,6 @@
                             {{ $employee->user->role->role_name }}
                         </span>
                     </td>
-                    <td>{{ $employee->hire_date ? $employee->hire_date->format('M d, Y') : 'N/A' }}</td>
                     <td>
                         <a href="{{ route('dean.employee-profile', $employee->employee_id) }}" class="btn btn-primary" style="padding: 5px 15px; font-size: 12px;">
                             <i class="fas fa-eye"></i> View Profile
@@ -71,7 +69,7 @@
                 @empty
                 <tr>
                     <td colspan="8" style="text-align: center; color: var(--text-light);">
-                        No employees found
+                        No employ7es found
                     </td>
                 </tr>
                 @endforelse
