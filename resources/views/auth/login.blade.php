@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Integrated Documents Employee Dashboard - SITE</title>
+    <title>Login - Employee Dashboard with Data Analytics - SITE</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
@@ -202,16 +202,97 @@
         .password-toggle {
             cursor: pointer;
         }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 9999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        [data-theme="dark"] .loading-overlay {
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            background: var(--card-bg);
+            padding: 40px 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--input-border);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: var(--text-light);
+        }
     </style>
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text">Logging in</div>
+            <div class="loading-subtext">Please wait...</div>
+        </div>
+    </div>
+
     <div class="login-container">
         <div class="login-header">
             <button class="theme-toggle" id="themeToggle" type="button">
                 <i class="fas fa-moon"></i>
             </button>
             <img src="{{ asset('uploads/documents/site_logo-removebg-preview.png') }}" alt="SITE Logo" style="width: 80px; height: 80px; margin-bottom: 15px; object-fit: contain; background: white; padding: 4px; border-radius: 50%; box-shadow: 0 6px 15px rgba(0,0,0,0.3); border: 2px solid rgba(255,255,255,0.9);">
-            <h1 style="font-size: 22px; line-height: 1.3; margin-bottom: 8px;">Integrated Documents Employee Dashboard</h1>
+            <h1 style="font-size: 22px; line-height: 1.3; margin-bottom: 8px;">Employee Dashboard with Data Analytics</h1>
             <p style="font-size: 13px; margin-bottom: 5px;">School of Information Technology and Engineering (SITE)</p>
             <p style="font-size: 13px; opacity: 0.9;">Sign in to continue</p>
         </div>
@@ -222,7 +303,7 @@
             </div>
             @endif
 
-            <form action="{{ route('login.post') }}" method="POST">
+            <form action="{{ route('login.post') }}" method="POST" id="loginForm">
                 @csrf
                 <div class="form-group">
                     <label class="form-label">Username</label>
@@ -265,6 +346,15 @@
             const icon = themeToggle.querySelector('i');
             icon.className = theme === 'dark' ? 'fas fa-sun' : 'fas fa-moon';
         }
+
+        // Login Form Loading Effect
+        const loginForm = document.getElementById('loginForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        
+        loginForm.addEventListener('submit', function(e) {
+            // Show loading overlay
+            loadingOverlay.classList.add('active');
+        });
     </script>
 </body>
 </html>

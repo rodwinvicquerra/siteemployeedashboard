@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Task;
 use App\Models\Notification;
 use App\Models\Document;
+use App\Models\DocumentView;
 use App\Models\PerformanceReport;
 use Illuminate\Http\Request;
 
@@ -120,17 +121,17 @@ class FacultyController extends Controller
     public function documents()
     {
         $documents = Document::getFilteredDocuments(auth()->user())->paginate(15);
-        return view('faculty.documents', compact('documents'));
+        $recentDocuments = DocumentView::getRecentDocuments(auth()->id(), 5);
+        $favoriteDocuments = auth()->user()->documentFavorites()->with('document')->get()->pluck('document');
+        
+        return view('faculty.documents', compact('documents', 'recentDocuments', 'favoriteDocuments'));
     }
 
     public function uploadDocument(Request $request)
     {
         $validated = $request->validate([
             'document_title' => 'required|string|max:150',
-            'document_type' => 'required|in:pdf,image',
-            'documents' => 'required|array',
-            'documents.*' => 'required|file|max:10240',
-            'category_id' => 'nullable|exists:document_categories,category_id',
+            'document' => 'required|in:Policies,Forms,Reports,Memos,Research Papers,Other',
             'tags' => 'nullable|string',
         ]);
 
@@ -152,6 +153,9 @@ class FacultyController extends Controller
             }
         }
 
+        // Parse tags
+        $tags = !empty($validated['tags']) ? implode(',', array_map('trim', explode(',', $validated['tags']))) : '';
+
         $uploadedCount = 0;
         foreach ($request->file('documents') as $index => $file) {
             $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
@@ -161,6 +165,9 @@ class FacultyController extends Controller
                 'uploaded_by' => auth()->id(),
                 'document_title' => $validated['document_title'] . ($uploadedCount > 0 ? ' (' . ($uploadedCount + 1) . ')' : ''),
                 'file_path' => 'uploads/documents/' . $filename,
+                'document_type' => $validated['document_type'],
+                'category' => $validated['category'],
+                'tags' => $tags. $filename,
                 'document_type' => $validated['document_type'],
                 'category_id' => $validated['category_id'] ?? null,
                 'tags' => $validated['tags'] ?? null,
@@ -185,6 +192,9 @@ class FacultyController extends Controller
         $filePath = public_path($document->file_path);
 
         if (!file_exists($filePath)) {
+        // Track document view
+        DocumentView::trackView(auth()->id(), $id);
+
             abort(404, 'File not found');
         }
 
@@ -225,5 +235,15 @@ class FacultyController extends Controller
             ->get();
 
         return view('faculty.profile', compact('employee', 'performanceReports'));
+    }
+
+    // Toggle document favorite
+    public function toggleFavorite($id)
+    {
+        $document = Document::findOrFail($id);
+        $isFavorited = $document->toggleFavorite(auth()->id());
+        
+        $message = $isFavorited ? 'Document added to favorites' : 'Document removed from favorites';
+        return response()->json(['success' => true, 'favorited' => $isFavorited, 'message' => $message]);
     }
 }

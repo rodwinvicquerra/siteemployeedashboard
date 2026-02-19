@@ -163,8 +163,19 @@
                     <td><strong>{{ $document->document_title }}</strong></td>
                     <td>
                         @if($document->category)
-                            <span class="modern-badge" style="background: {{ $document->category->color }}20; color: {{ $document->category->color }};">
-                                {{ $document->category->category_name }}
+                            @php
+                                $categoryColors = [
+                                    'Policies' => '#1976d2',
+                                    'Forms' => '#388e3c',
+                                    'Reports' => '#d32f2f',
+                                    'Memos' => '#f57c00',
+                                    'Research Papers' => '#7b1fa2',
+                                    'Other' => '#616161',
+                                ];
+                                $color = $categoryColors[$document->category] ?? '#616161';
+                            @endphp
+                            <span class="modern-badge" style="background: {{ $color }}20; color: {{ $color }};">
+                                {{ $document->category }}
                             </span>
                         @elseif($document->document_type === 'pdf')
                             <span class="modern-badge modern-badge-pdf">PDF Document</span>

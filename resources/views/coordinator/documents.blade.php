@@ -128,12 +128,15 @@
                 </div>
 
                 <div class="modern-form-group">
-                    <label class="modern-form-label">Category</label>
-                    <select name="category_id" class="modern-form-control">
+                    <label class="modern-form-label">Category *</label>
+                    <select name="category" class="modern-form-control" required>
                         <option value="">Select Category</option>
-                        @foreach(\App\Models\DocumentCategory::all() as $cat)
-                            <option value="{{ $cat->category_id }}">{{ $cat->category_name }}</option>
-                        @endforeach
+                        <option value="Policies">Policies</option>
+                        <option value="Forms">Forms</option>
+                        <option value="Reports">Reports</option>
+                        <option value="Memos">Memos</option>
+                        <option value="Research Papers">Research Papers</option>
+                        <option value="Other">Other</option>
                     </select>
                 </div>
 
@@ -257,8 +260,19 @@
                     <td><strong>{{ $document->document_title }}</strong></td>
                     <td>
                         @if($document->category)
-                            <span class="badge" style="background: {{ $document->category->color }}; color: white;">
-                                {{ $document->category->category_name }}
+                            @php
+                                $categoryColors = [
+                                    'Policies' => '#1976d2',
+                                    'Forms' => '#388e3c',
+                                    'Reports' => '#d32f2f',
+                                    'Memos' => '#f57c00',
+                                    'Research Papers' => '#7b1fa2',
+                                    'Other' => '#616161',
+                                ];
+                                $color = $categoryColors[$document->category] ?? '#616161';
+                            @endphp
+                            <span class="badge" style="background: {{ $color }}; color: white;">
+                                {{ $document->category }}
                             </span>
                         @elseif($document->document_type === 'pdf')
                             <span class="badge" style="background: #d32f2f; color: white;">PDF Document</span>

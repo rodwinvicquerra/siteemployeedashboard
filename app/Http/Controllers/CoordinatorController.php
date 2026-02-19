@@ -7,6 +7,7 @@ use App\Models\Employee;
 use App\Models\Task;
 use App\Models\Notification;
 use App\Models\Document;
+use App\Models\DocumentView;
 use App\Models\DashboardLog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -182,7 +183,10 @@ class CoordinatorController extends Controller
     public function documents()
     {
         $documents = Document::getFilteredDocuments(auth()->user())->paginate(15);
-        return view('coordinator.documents', compact('documents'));
+        $recentDocuments = DocumentView::getRecentDocuments(auth()->id(), 5);
+        $favoriteDocuments = auth()->user()->documentFavorites()->with('document')->get()->pluck('document');
+        
+        return view('coordinator.documents', compact('documents', 'recentDocuments', 'favoriteDocuments'));
     }
 
     public function uploadDocument(Request $request)
@@ -192,7 +196,7 @@ class CoordinatorController extends Controller
             'document_type' => 'required|in:pdf,image',
             'documents' => 'required|array',
             'documents.*' => 'required|file|max:10240',
-            'category_id' => 'nullable|exists:document_categories,category_id',
+            'category' => 'required|in:Policies,Forms,Reports,Memos,Research Papers,Other',
             'tags' => 'nullable|string',
         ]);
 
@@ -214,6 +218,9 @@ class CoordinatorController extends Controller
             }
         }
 
+        // Parse tags
+        $tags = !empty($validated['tags']) ? implode(',', array_map('trim', explode(',', $validated['tags']))) : '';
+
         $uploadedCount = 0;
         foreach ($request->file('documents') as $index => $file) {
             $filename = time() . '_' . $index . '_' . $file->getClientOriginalName();
@@ -224,8 +231,8 @@ class CoordinatorController extends Controller
                 'document_title' => $validated['document_title'] . ($uploadedCount > 0 ? ' (' . ($uploadedCount + 1) . ')' : ''),
                 'file_path' => 'uploads/documents/' . $filename,
                 'document_type' => $validated['document_type'],
-                'category_id' => $validated['category_id'] ?? null,
-                'tags' => $validated['tags'] ?? null,
+                'category' => $validated['category'],
+                'tags' => $tags,
             ]);
             $uploadedCount++;
         }
@@ -394,6 +401,9 @@ class CoordinatorController extends Controller
             abort(404, 'File not found');
         }
 
+        // Track document view
+        DocumentView::trackView(auth()->id(), $id);
+
         $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
         $mimeTypes = [
             'pdf' => 'application/pdf',
@@ -420,5 +430,15 @@ class CoordinatorController extends Controller
         }
 
         return response()->download($filePath, basename($document->file_path));
+    }
+
+    // Toggle document favorite
+    public function toggleFavorite($id)
+    {
+        $document = Document::findOrFail($id);
+        $isFavorited = $document->toggleFavorite(auth()->id());
+        
+        $message = $isFavorited ? 'Document added to favorites' : 'Document removed from favorites';
+        return response()->json(['success' => true, 'favorited' => $isFavorited, 'message' => $message]);
     }
 }

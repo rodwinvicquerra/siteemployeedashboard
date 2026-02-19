@@ -16,9 +16,16 @@ class Document extends Model
         'document_title',
         'file_path',
         'document_type',
+        'category',
         'category_id',
         'tags',
     ];
+
+    // Tags are stored as comma-separated string
+    public function getTagsArrayAttribute()
+    {
+        return $this->tags ? explode(',', $this->tags) : [];
+    }
 
     public function uploader()
     {
@@ -33,6 +40,39 @@ class Document extends Model
     public function comments()
     {
         return $this->hasMany(DocumentComment::class, 'document_id', 'document_id');
+    }
+
+    public function favorites()
+    {
+        return $this->hasMany(DocumentFavorite::class, 'document_id', 'document_id');
+    }
+
+    public function views()
+    {
+        return $this->hasMany(DocumentView::class, 'document_id', 'document_id');
+    }
+
+    // Check if document is favorited by user
+    public function isFavoritedBy($userId)
+    {
+        return $this->favorites()->where('user_id', $userId)->exists();
+    }
+
+    // Toggle favorite for user
+    public function toggleFavorite($userId)
+    {
+        $favorite = $this->favorites()->where('user_id', $userId)->first();
+        
+        if ($favorite) {
+            $favorite->delete();
+            return false; // Unfavorited
+        } else {
+            DocumentFavorite::create([
+                'user_id' => $userId,
+                'document_id' => $this->document_id,
+            ]);
+            return true; // Favorited
+        }
     }
 
     /**

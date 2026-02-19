@@ -79,6 +79,41 @@ class User extends Authenticatable
         return $this->hasMany(Document::class, 'uploaded_by');
     }
 
+    public function leaveRequests()
+    {
+        return $this->hasMany(LeaveRequest::class, 'user_id');
+    }
+
+    public function reviewedLeaves()
+    {
+        return $this->hasMany(LeaveRequest::class, 'reviewed_by');
+    }
+
+    public function leaveBalance()
+    {
+        return $this->hasOne(LeaveBalance::class, 'user_id')->where('year', date('Y'));
+    }
+
+    public function calendarEvents()
+    {
+        return $this->hasMany(CalendarEvent::class, 'created_by');
+    }
+
+    public function eventAttendances()
+    {
+        return $this->hasMany(EventAttendee::class, 'user_id');
+    }
+
+    public function documentFavorites()
+    {
+        return $this->hasMany(DocumentFavorite::class, 'user_id');
+    }
+
+    public function documentViews()
+    {
+        return $this->hasMany(DocumentView::class, 'user_id');
+    }
+
     public function isDean()
     {
         return $this->role->role_name === 'Dean';

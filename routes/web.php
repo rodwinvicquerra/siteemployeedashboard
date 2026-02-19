@@ -7,6 +7,8 @@ use App\Http\Controllers\CoordinatorController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\LeaveController;
+use App\Http\Controllers\CalendarController;
 
 // Authentication Routes
 Route::get('/', [AuthController::class, 'showLogin'])->name('login');
@@ -24,6 +26,28 @@ Route::middleware('auth')->prefix('profile')->name('profile.')->group(function (
     Route::post('/change-password', [ProfileController::class, 'changePassword'])->name('change-password');
 });
 
+// Leave Management (All authenticated users)
+Route::middleware('auth')->prefix('leave')->name('leave.')->group(function () {
+    Route::get('/', [LeaveController::class, 'index'])->name('index');
+    Route::get('/create', [LeaveController::class, 'create'])->name('create');
+    Route::post('/', [LeaveController::class, 'store'])->name('store');
+    Route::post('/{id}/approve', [LeaveController::class, 'approve'])->name('approve');
+    Route::post('/{id}/reject', [LeaveController::class, 'reject'])->name('reject');
+    Route::get('/calendar', [LeaveController::class, 'calendar'])->name('calendar');
+});
+
+// Calendar/Events (All authenticated users)
+Route::middleware('auth')->prefix('calendar')->name('calendar.')->group(function () {
+    Route::get('/', [CalendarController::class, 'index'])->name('index');
+    Route::get('/create', [CalendarController::class, 'create'])->name('create');
+    Route::post('/', [CalendarController::class, 'store'])->name('store');
+    Route::get('/{id}', [CalendarController::class, 'show'])->name('show');
+    Route::put('/{id}', [CalendarController::class, 'update'])->name('update');
+    Route::delete('/{id}', [CalendarController::class, 'destroy'])->name('destroy');
+    Route::post('/{id}/respond', [CalendarController::class, 'respond'])->name('respond');
+    Route::get('/events/json', [CalendarController::class, 'getEvents'])->name('events.json');
+});
+
 // Dean Routes
 Route::middleware(['auth', 'role:Dean'])->prefix('dean')->name('dean.')->group(function () {
     Route::get('/dashboard', [DeanController::class, 'dashboard'])->name('dashboard');
@@ -38,6 +62,7 @@ Route::middleware(['auth', 'role:Dean'])->prefix('dean')->name('dean.')->group(f
 
 // Program Coordinator Routes
 Route::middleware(['auth', 'role:Program Coordinator'])->prefix('coordinator')->name('coordinator.')->group(function () {
+    Route::post('/documents/{id}/favorite', [CoordinatorController::class, 'toggleFavorite'])->name('toggle-favorite');
     Route::get('/dashboard', [CoordinatorController::class, 'dashboard'])->name('dashboard');
     
     // Tasks
@@ -72,6 +97,7 @@ Route::middleware(['auth', 'role:Faculty Employee'])->prefix('faculty')->name('f
     Route::get('/documents', [FacultyController::class, 'documents'])->name('documents');
     Route::post('/documents', [FacultyController::class, 'uploadDocument'])->name('upload-document');
     Route::get('/documents/{id}/view', [FacultyController::class, 'viewDocument'])->name('view-document');
+    Route::post('/documents/{id}/favorite', [FacultyController::class, 'toggleFavorite'])->name('toggle-favorite');
     Route::get('/documents/{id}/download', [FacultyController::class, 'downloadDocument'])->name('download-document');
     Route::get('/profile', [FacultyController::class, 'profile'])->name('profile');
 });

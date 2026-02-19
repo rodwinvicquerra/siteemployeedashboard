@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@yield('title', 'Integrated Documents Employee Dashboard - SITE')</title>
+    <title>@yield('title', 'Employee Dashboard with Data Analytics - SITE')</title>
     <link rel="stylesheet" href="{{ asset('css/app.css') }}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -655,16 +655,97 @@
             font-size: 12px;
             color: var(--text-light);
         }
+
+        /* Loading Overlay */
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 99999;
+            justify-content: center;
+            align-items: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        [data-theme="dark"] .loading-overlay {
+            background: rgba(0, 0, 0, 0.85);
+        }
+
+        .loading-overlay.active {
+            display: flex;
+        }
+
+        .loading-content {
+            text-align: center;
+            background: var(--white);
+            padding: 40px 50px;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: bounceIn 0.5s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.8); opacity: 0; }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+
+        .loading-spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border-color);
+            border-top: 4px solid var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .loading-text {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--text-dark);
+            margin-bottom: 8px;
+        }
+
+        .loading-subtext {
+            font-size: 14px;
+            color: var(--text-light);
+        }
     </style>
     @stack('styles')
 </head>
 <body>
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-content">
+            <div class="loading-spinner"></div>
+            <div class="loading-text" id="loadingText">Please wait</div>
+            <div class="loading-subtext" id="loadingSubtext">Processing...</div>
+        </div>
+    </div>
+
     <div class="dashboard-container">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-header">
                 <img src="{{ asset('uploads/documents/site_logo-removebg-preview.png') }}" alt="SITE Logo" style="width: 60px; height: 60px; margin-bottom: 10px; object-fit: contain; background: white; padding: 3px; border-radius: 50%; box-shadow: 0 4px 10px rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.8);">
-                <h2 style="font-size: 16px; line-height: 1.3; margin-bottom: 8px;">Integrated Documents Employee Dashboard</h2>
+                <h2 style="font-size: 16px; line-height: 1.3; margin-bottom: 8px;">Employee Dashboard with Data Analytics</h2>
                 <p style="font-size: 11px; opacity: 0.95; margin-bottom: 5px;">School of Information Technology and Engineering</p>
                 <p style="font-size: 12px; font-weight: 600;">{{ auth()->user()->role->role_name }}</p>
             </div>
@@ -729,7 +810,7 @@
                             <a href="{{ route('profile.edit') }}" style="display: block; padding: 10px 15px; color: var(--text-dark); text-decoration: none; border-radius: 4px;">
                                 <i class="fas fa-user-edit"></i> Edit Profile
                             </a>
-                            <form action="{{ route('logout') }}" method="POST" style="margin: 0;">
+                            <form action="{{ route('logout') }}" method="POST" style="margin: 0;" id="logoutForm">
                                 @csrf
                                 <button type="submit" style="width: 100%; text-align: left; padding: 10px 15px; background: transparent; border: none; color: var(--text-dark); cursor: pointer; border-radius: 4px;">
                                     <i class="fas fa-sign-out-alt"></i> Logout
@@ -938,6 +1019,22 @@
                 searchInput.focus();
             }
         });
+
+        // Logout Form Loading Effect
+        const logoutForm = document.getElementById('logoutForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const loadingSubtext = document.getElementById('loadingSubtext');
+        
+        if (logoutForm) {
+            logoutForm.addEventListener('submit', function(e) {
+                // Update text for logout
+                loadingText.textContent = 'Logging out';
+                loadingSubtext.textContent = 'Please wait...';
+                // Show loading overlay
+                loadingOverlay.classList.add('active');
+            });
+        }
     </script>
 
     <!-- Toast Container -->
